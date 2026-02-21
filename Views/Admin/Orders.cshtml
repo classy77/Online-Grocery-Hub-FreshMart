@@ -1,0 +1,73 @@
+@model List<OrderViewModel>
+@{
+    ViewData["Title"] = "Orders";
+    Layout = "_AdminLayout";
+    var statuses = ViewBag.Statuses as string[];
+    var selectedStatus = ViewBag.SelectedStatus as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="bi bi-bag-check me-2"></i>Orders</h2>
+    <div class="d-flex gap-2">
+        <select class="form-select" onchange="window.location.href=this.value ? '?status=' + this.value : '/Admin/Orders'">
+            <option value="">All Statuses</option>
+            @foreach (var status in statuses ?? new string[0])
+            {
+                <option value="@status" selected="@(selectedStatus == status)">@status</option>
+            }
+        </select>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td><span class="fw-semibold">@order.OrderNumber</span></td>
+                            <td>@order.Items.FirstOrDefault()?.ProductName ...</td>
+                            <td>@order.Items.Count items</td>
+                            <td>₹@order.FinalAmount.ToString("F2")</td>
+                            <td><span class="badge @GetStatusBadgeClass(order.Status)">@order.Status</span></td>
+                            <td>@order.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td class="text-end">
+                                <a asp-action="OrderDetails" asp-route-id="@order.OrderId" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Packed" => "bg-info",
+            "OutForDelivery" => "bg-primary",
+            "Delivered" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

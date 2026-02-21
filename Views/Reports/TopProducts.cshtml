@@ -1,0 +1,69 @@
+@model List<TopProductViewModel>
+@{
+    ViewData["Title"] = "Top Products";
+    Layout = "_AdminLayout";
+    var startDate = ViewBag.StartDate as DateTime?;
+    var endDate = ViewBag.EndDate as DateTime?;
+    var topCount = ViewBag.TopCount as int?;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="bi bi-trophy me-2"></i>Top Products</h2>
+    <form asp-action="TopProducts" method="get" class="d-flex gap-2">
+        <input type="date" name="startDate" class="form-control" value="@startDate?.ToString("yyyy-MM-dd")" placeholder="Start Date">
+        <input type="date" name="endDate" class="form-control" value="@endDate?.ToString("yyyy-MM-dd")" placeholder="End Date">
+        <select name="topCount" class="form-select" style="width: 80px;">
+            <option value="10" selected="@(topCount == 10)">Top 10</option>
+            <option value="20" selected="@(topCount == 20)">Top 20</option>
+            <option value="50" selected="@(topCount == 50)">Top 50</option>
+        </select>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search"></i>
+        </button>
+    </form>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">Best Selling Products (@startDate?.ToString("MMM dd") - @endDate?.ToString("MMM dd, yyyy"))</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Product</th>
+                        <th class="text-center">Units Sold</th>
+                        <th class="text-end">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        var product = Model[i];
+                        <tr>
+                            <td>
+                                @if (i < 3)
+                                {
+                                    <span class="badge bg-@(i == 0 ? "warning" : i == 1 ? "secondary" : "danger") rounded-circle" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                                        @(i + 1)
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-dark rounded-circle" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                                        @(i + 1)
+                                    </span>
+                                }
+                            </td>
+                            <td><span class="fw-semibold">@product.ProductName</span></td>
+                            <td class="text-center"><span class="badge bg-info">@product.TotalSold</span></td>
+                            <td class="text-end fw-bold text-success">₹@product.Revenue.ToString("F2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

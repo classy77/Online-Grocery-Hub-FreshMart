@@ -1,0 +1,184 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h2>
+    <span class="text-muted">@DateTime.Now.ToString("MMMM dd, yyyy")</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Total Orders</h6>
+                        <h3 class="mb-0 fw-bold">@Model.TotalOrders</h3>
+                    </div>
+                    <i class="bi bi-bag-check fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Pending Orders</h6>
+                        <h3 class="mb-0 fw-bold">@Model.PendingOrders</h3>
+                    </div>
+                    <i class="bi bi-hourglass fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Today's Revenue</h6>
+                        <h3 class="mb-0 fw-bold">₹@Model.TodayRevenue.ToString("F0")</h3>
+                    </div>
+                    <i class="bi bi-currency-rupee fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Total Customers</h6>
+                        <h3 class="mb-0 fw-bold">@Model.TotalCustomers</h3>
+                    </div>
+                    <i class="bi bi-people fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Orders -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Recent Orders</h5>
+                <a asp-action="Orders" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td>@order.OrderNumber</td>
+                                    <td>@order.CustomerName</td>
+                                    <td>₹@order.Amount.ToString("F2")</td>
+                                    <td><span class="badge @GetStatusBadgeClass(order.Status)">@order.Status</span></td>
+                                    <td>@order.CreatedAt.ToString("MMM dd")</td>
+                                    <td>
+                                        <a asp-action="OrderDetails" asp-route-id="@order.OrderId" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Products -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-trophy me-2"></i>Top Products</h5>
+            </div>
+            <div class="card-body">
+                @foreach (var product in Model.TopProducts)
+                {
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge bg-success rounded-circle" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                                @(Model.TopProducts.IndexOf(product) + 1)
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-0 fw-semibold">@product.ProductName</h6>
+                            <small class="text-muted">@product.TotalSold sold</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-bold text-success">₹@product.Revenue.ToString("F0")</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a asp-action="CreateProduct" class="btn btn-outline-success">
+                        <i class="bi bi-plus-circle me-2"></i>Add Product
+                    </a>
+                    <a asp-action="Orders" class="btn btn-outline-primary">
+                        <i class="bi bi-bag me-2"></i>Manage Orders
+                    </a>
+                    <a asp-controller="Reports" asp-action="Index" class="btn btn-outline-info">
+                        <i class="bi bi-graph-up me-2"></i>View Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Alert -->
+@if (Model.LowStockProducts > 0)
+{
+    <div class="alert alert-warning mt-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Low Stock Alert!</strong> @Model.LowStockProducts products are running low on stock.
+        <a asp-action="Products" class="alert-link">View Products</a>
+    </div>
+}
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Packed" => "bg-info",
+            "OutForDelivery" => "bg-primary",
+            "Delivered" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

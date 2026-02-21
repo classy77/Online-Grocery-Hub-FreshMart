@@ -1,0 +1,268 @@
+@model CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<div class="container py-4">
+    <h2 class="fw-bold mb-4"><i class="bi bi-credit-card me-2"></i>Checkout</h2>
+
+    <form asp-action="Checkout" method="post" id="checkoutForm">
+        @Html.AntiForgeryToken()
+        <div class="row">
+            <!-- Delivery Address -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-geo-alt me-2"></i>Select Delivery Address</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Addresses.Any())
+                        {
+                            <div class="row g-3">
+                                @foreach (var address in Model.Addresses)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="form-check card p-3 h-100">
+                                            <input class="form-check-input" type="radio" name="SelectedAddressId" id="address_@address.Id" value="@address.Id" @(address.Id == Model.Addresses.First().Id ? "checked" : "")>
+                                            <label class="form-check-label w-100" for="address_@address.Id">
+                                                <span class="badge bg-secondary mb-2">@address.Label</span>
+                                                <p class="mb-0 small">@address.FullAddress</p>
+                                            </label>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle me-2"></i>No addresses found. Please add an address first.
+                            </div>
+                        }
+                        <a href="#" class="btn btn-outline-success mt-3" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                            <i class="bi bi-plus me-2"></i>Add New Address
+                        </a>
+                        <span asp-validation-for="SelectedAddressId" class="text-danger d-block mt-2"></span>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-wallet2 me-2"></i>Payment Method</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check card p-3">
+                                    <input class="form-check-input" type="radio" asp-for="PaymentMethod" id="cod" value="CashOnDelivery" checked>
+                                    <label class="form-check-label w-100" for="cod">
+                                        <i class="bi bi-cash-coin fs-3 d-block mb-2 text-success"></i>
+                                        <span class="fw-semibold">Cash on Delivery</span>
+                                        <p class="small text-muted mb-0">Pay when you receive</p>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check card p-3">
+                                    <input class="form-check-input" type="radio" asp-for="PaymentMethod" id="upi" value="UPI">
+                                    <label class="form-check-label w-100" for="upi">
+                                        <i class="bi bi-phone fs-3 d-block mb-2 text-primary"></i>
+                                        <span class="fw-semibold">UPI</span>
+                                        <p class="small text-muted mb-0">Pay using UPI apps</p>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check card p-3">
+                                    <input class="form-check-input" type="radio" asp-for="PaymentMethod" id="card" value="Card">
+                                    <label class="form-check-label w-100" for="card">
+                                        <i class="bi bi-credit-card fs-3 d-block mb-2 text-info"></i>
+                                        <span class="fw-semibold">Credit/Debit Card</span>
+                                        <p class="small text-muted mb-0">Pay using card</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <span asp-validation-for="PaymentMethod" class="text-danger d-block mt-2"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 fw-bold">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Cart != null)
+                        {
+                            <div class="mb-3">
+                                @foreach (var item in Model.Cart.Items)
+                                {
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <small>@item.ProductName x@(item.Quantity)</small>
+                                        <small>₹@item.Subtotal.ToString("F2")</small>
+                                    </div>
+                                }
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal (@Model.Cart.TotalItems items)</span>
+                                <span>₹@Model.Cart.TotalAmount.ToString("F2")</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Delivery</span>
+                                <span class="@(Model.Cart.TotalAmount >= 500 ? "text-success" : "")">@(Model.Cart.TotalAmount >= 500 ? "Free" : "₹50.00")</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Tax</span>
+                                <span>₹0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-4">
+                                <span class="fw-bold">Total</span>
+                                <span class="fw-bold fs-5 text-success">₹@((Model.Cart.TotalAmount >= 500 ? Model.Cart.TotalAmount : Model.Cart.TotalAmount + 50).ToString("F2"))</span>
+                            </div>
+                        }
+                        <button type="submit" class="btn btn-success w-100 py-2 fw-semibold" id="placeOrderBtn" @(Model.Addresses.Any() ? "" : "disabled")>
+                            <i class="bi bi-check-circle me-2"></i>Place Order
+                        </button>
+                        @if (!Model.Addresses.Any())
+                        {
+                            <p class="text-danger small text-center mt-2 mb-0">Please add a delivery address</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Add Address Modal -->
+<div class="modal fade" id="addAddressModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAddressForm">
+                    <div class="mb-3">
+                        <label class="form-label">Label</label>
+                        <input type="text" name="Label" class="form-control" placeholder="e.g., Home, Work">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address Line 1 *</label>
+                        <input type="text" name="Line1" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address Line 2</label>
+                        <input type="text" name="Line2" class="form-control">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">City *</label>
+                            <input type="text" name="City" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">State *</label>
+                            <input type="text" name="State" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Postal Code *</label>
+                            <input type="text" name="PostalCode" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Country</label>
+                            <input type="text" name="Country" class="form-control" value="India">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="saveAddress">Save Address</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Handle main form submission
+            $('#checkoutForm').on('submit', function(e) {
+                var button = $('#placeOrderBtn');
+                var selectedAddress = $('input[name="SelectedAddressId"]:checked').val();
+                
+                // Validate address selection
+                if (!selectedAddress) {
+                    e.preventDefault();
+                    showToast('Error', 'Please select a delivery address', 'danger');
+                    return false;
+                }
+                
+                // Disable button to prevent duplicate submissions
+                button.prop('disabled', true);
+                button.html('<i class="bi bi-hourglass-split me-2"></i>Processing...');
+            });
+
+            // Handle add address modal
+            $('#saveAddress').click(function() {
+                var form = $('#addAddressForm');
+                
+                // Manual validation
+                if (!form[0].checkValidity()) {
+                    form[0].reportValidity();
+                    return;
+                }
+                
+                var data = {
+                    Label: $('input[name="Label"]').val(),
+                    Line1: $('input[name="Line1"]').val(),
+                    Line2: $('input[name="Line2"]').val(),
+                    City: $('input[name="City"]').val(),
+                    State: $('input[name="State"]').val(),
+                    PostalCode: $('input[name="PostalCode"]').val(),
+                    Country: $('input[name="Country"]').val(),
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                };
+                
+                $.ajax({
+                    url: '/Order/AddAddress',
+                    type: 'POST',
+                    data: data,
+                    success: function(response) {
+                        if (response.success) {
+                            // Reset form
+                            form[0].reset();
+                            
+                            // Close modal
+                            var modal = bootstrap.Modal.getInstance(document.getElementById('addAddressModal'));
+                            modal.hide();
+                            
+                            // Show success message
+                            showToast('Success', response.message, 'success');
+                            
+                            // Reload page after 1 second to show the new address
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showToast('Error', response.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        showToast('Error', 'Failed to add address', 'danger');
+                    }
+                });
+            });
+        });
+    </script>
+}

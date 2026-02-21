@@ -1,0 +1,210 @@
+@model ReportViewModel
+@{
+    ViewData["Title"] = "Reports";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="bi bi-graph-up me-2"></i>Sales Reports</h2>
+    <a asp-action="ExportSales" asp-route-startDate="@Model.StartDate" asp-route-endDate="@Model.EndDate" class="btn btn-outline-success">
+        <i class="bi bi-download me-2"></i>Export CSV
+    </a>
+</div>
+
+<!-- Date Filter -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="startDate" class="form-control" value="@Model.StartDate.ToString("yyyy-MM-dd")">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">End Date</label>
+                <input type="date" name="endDate" class="form-control" value="@Model.EndDate.ToString("yyyy-MM-dd")">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-filter me-2"></i>Generate Report
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-currency-rupee display-4"></i>
+                <h4 class="mt-2">₹@Model.TotalRevenue.ToString("F0")</h4>
+                <p class="mb-0">Total Revenue</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-bag-check display-4"></i>
+                <h4 class="mt-2">@Model.TotalOrders</h4>
+                <p class="mb-0">Total Orders</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-info text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-receipt display-4"></i>
+                <h4 class="mt-2">₹@Model.AverageOrderValue.ToString("F2")</h4>
+                <p class="mb-0">Average Order Value</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Daily Sales Chart -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-calendar3 me-2"></i>Daily Sales</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dailySalesChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Sales -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-pie-chart me-2"></i>Sales by Category</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Links -->
+<div class="row g-4 mt-2">
+    <div class="col-md-4">
+        <a asp-action="DailyOrders" class="card border-0 shadow-sm text-decoration-none">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-day fs-1 text-primary"></i>
+                <h5 class="mt-2">Daily Orders</h5>
+                <p class="text-muted mb-0">View orders by date</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a asp-action="TopProducts" class="card border-0 shadow-sm text-decoration-none">
+            <div class="card-body text-center">
+                <i class="bi bi-trophy fs-1 text-warning"></i>
+                <h5 class="mt-2">Top Products</h5>
+                <p class="text-muted mb-0">Best selling products</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a asp-action="InventoryReport" class="card border-0 shadow-sm text-decoration-none">
+            <div class="card-body text-center">
+                <i class="bi bi-box-seam fs-1 text-success"></i>
+                <h5 class="mt-2">Inventory Report</h5>
+                <p class="text-muted mb-0">Stock levels and valuation</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Daily Sales Chart
+        const dailySalesCtx = document.getElementById('dailySalesChart').getContext('2d');
+        new Chart(dailySalesCtx, {
+            type: 'line',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.DailySales.Select(d => $"'{d.Date:MMM dd}'")))],
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: [@string.Join(",", Model.DailySales.Select(d => d.Revenue))],
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Orders',
+                    data: [@string.Join(",", Model.DailySales.Select(d => d.OrderCount))],
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Revenue (₹)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Orders'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Category Chart
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.CategorySales.Select(c => $"'{c.CategoryName}'")))],
+                datasets: [{
+                    data: [@string.Join(",", Model.CategorySales.Select(c => c.Revenue))],
+                    backgroundColor: [
+                        '#28a745',
+                        '#007bff',
+                        '#ffc107',
+                        '#dc3545',
+                        '#6f42c1',
+                        '#20c997',
+                        '#fd7e14'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    </script>
+}

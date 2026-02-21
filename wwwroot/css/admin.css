@@ -1,0 +1,289 @@
+/* FreshMart Admin Panel Styles */
+
+:root {
+    --primary-color: #28a745;
+    --sidebar-width: 250px;
+    --sidebar-collapsed-width: 80px;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f5f5f5;
+}
+
+/* Wrapper */
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+/* Sidebar */
+#sidebar {
+    min-width: var(--sidebar-width);
+    max-width: var(--sidebar-width);
+    min-height: 100vh;
+    transition: all 0.3s;
+    position: fixed;
+    z-index: 1000;
+}
+
+#sidebar.active {
+    margin-left: -var(--sidebar-width);
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: #212529;
+}
+
+#sidebar ul.components {
+    padding: 20px 0;
+}
+
+#sidebar ul li {
+    padding: 0 15px;
+    margin-bottom: 5px;
+}
+
+#sidebar ul li a {
+    padding: 12px 15px;
+    font-size: 1rem;
+    display: block;
+    color: #adb5bd;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+#sidebar ul li a:hover {
+    color: #fff;
+    background: #495057;
+}
+
+#sidebar ul li.active a {
+    color: #fff;
+    background: var(--primary-color);
+}
+
+#sidebar ul li a i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* CTAs */
+#sidebar ul.CTAs {
+    padding: 20px;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+#sidebar ul.CTAs a {
+    text-align: center;
+    font-size: 0.9em !important;
+    display: block;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    padding: 10px;
+    background: #495057;
+    color: #fff;
+    text-decoration: none;
+}
+
+#sidebar ul.CTAs a:hover {
+    background: var(--primary-color);
+}
+
+/* Content */
+#content {
+    width: calc(100% - var(--sidebar-width));
+    padding: 0;
+    min-height: 100vh;
+    transition: all 0.3s;
+    margin-left: var(--sidebar-width);
+}
+
+#content.active {
+    width: 100%;
+    margin-left: 0;
+}
+
+/* Navbar */
+.navbar {
+    padding: 15px 20px;
+    background: #fff;
+    border: none;
+    border-radius: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.navbar-btn {
+    box-shadow: none;
+    outline: none !important;
+    border: none;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 12px 12px 0 0 !important;
+    padding: 15px 20px;
+}
+
+/* Stats Cards */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-warning,
+.card.bg-info,
+.card.bg-danger {
+    color: white;
+}
+
+.card.bg-warning {
+    color: #212529;
+}
+
+/* Tables */
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+}
+
+/* Forms */
+.form-control, .form-select {
+    border-radius: 8px;
+}
+
+/* Alerts */
+.alert {
+    border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #sidebar {
+        margin-left: -var(--sidebar-width);
+    }
+    
+    #sidebar.active {
+        margin-left: 0;
+    }
+    
+    #content {
+        width: 100%;
+        margin-left: 0;
+    }
+    
+    #content.active {
+        width: calc(100% - var(--sidebar-width));
+        margin-left: var(--sidebar-width);
+    }
+}
+
+/* Charts */
+canvas {
+    max-height: 300px;
+}
+
+/* Dropdown */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+.dropdown-item {
+    padding: 10px 20px;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Modal */
+.modal-content {
+    border: none;
+    border-radius: 12px;
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 12px 12px 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    border-radius: 0 0 12px 12px;
+}
+
+/* Pagination */
+.page-link {
+    border: none;
+    color: var(--primary-color);
+    border-radius: 8px;
+    margin: 0 2px;
+}
+
+.page-item.active .page-link {
+    background-color: var(--primary-color);
+}
+
+/* Badges */
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.75em;
+    border-radius: 6px;
+}
+
+/* Progress Bars */
+.progress {
+    border-radius: 10px;
+    height: 8px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

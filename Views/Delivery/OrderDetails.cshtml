@@ -1,0 +1,128 @@
+@model DeliveryOrderViewModel
+@{
+    ViewData["Title"] = $"Delivery #{Model.OrderNumber}";
+    var availableStatuses = ViewBag.AvailableStatuses as string[];
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0"><i class="bi bi-truck me-2"></i>Delivery #@Model.OrderNumber</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Customer Info -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-person me-2"></i>Customer Information</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><span class="text-muted">Name:</span> <span class="fw-semibold">@Model.CustomerName</span></p>
+                    <p class="mb-0"><span class="text-muted">Phone:</span> <span class="fw-semibold">@Model.CustomerPhone</span></p>
+                </div>
+            </div>
+
+            <!-- Delivery Address -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-geo-alt me-2"></i>Delivery Address</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">@Model.Address</p>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-box-seam me-2"></i>Order Items</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        @foreach (var item in Model.Items)
+                        {
+                            <li class="list-group-item px-0">@item</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Update Status -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-arrow-clockwise me-2"></i>Update Delivery Status</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateStatus" method="post">
+                        <input type="hidden" name="orderId" value="@Model.OrderId" />
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <select name="status" class="form-select">
+                                    @foreach (var status in availableStatuses ?? new string[0])
+                                    {
+                                        <option value="@status" selected="@(Model.Status == status)">@status</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle me-2"></i>Update Status
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Delivery Info -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold">Delivery Information</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><span class="text-muted">Order Number:</span> <span class="fw-semibold">@Model.OrderNumber</span></p>
+                    <p class="mb-2"><span class="text-muted">Status:</span> <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status</span></p>
+                    <p class="mb-0"><span class="text-muted">Scheduled:</span> @(Model.ScheduledAt?.ToString("MMM dd, yyyy HH:mm") ?? "N/A")</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="tel:@Model.CustomerPhone" class="btn btn-outline-success">
+                            <i class="bi bi-telephone me-2"></i>Call Customer
+                        </a>
+                        <button type="button" class="btn btn-outline-primary" onclick="alert('Maps integration would open here')">
+                            <i class="bi bi-map me-2"></i>View on Map
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Scheduled" => "bg-secondary",
+            "Assigned" => "bg-info",
+            "PickedUp" => "bg-warning",
+            "OutForDelivery" => "bg-primary",
+            "Delivered" => "bg-success",
+            "Failed" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

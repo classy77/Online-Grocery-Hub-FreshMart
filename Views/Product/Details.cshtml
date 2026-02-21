@@ -1,0 +1,128 @@
+@model ProductViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    var relatedProducts = ViewBag.RelatedProducts as List<ProductViewModel>;
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Products</a></li>
+            <li class="breadcrumb-item active">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Image -->
+        <div class="col-lg-5 mb-4">
+            <div class="card border-0 shadow-sm">
+                <img src="@(Model.ImageUrl ?? "/images/products/placeholder.jpg")" class="card-img-top" alt="@Model.Name" style="height: 400px; object-fit: cover;">
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-lg-7">
+            <div class="ps-lg-4">
+                <span class="badge bg-success mb-2">@Model.CategoryName</span>
+                <h1 class="fw-bold mb-2">@Model.Name</h1>
+                <p class="text-muted mb-3">@Model.Description</p>
+
+                <div class="d-flex align-items-center mb-3">
+                    <div class="text-warning me-2">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                    </div>
+                    <span class="text-muted">(4.5) 128 reviews</span>
+                </div>
+
+                <div class="mb-4">
+                    <span class="display-5 fw-bold text-success">₹@Model.Price.ToString("F2")</span>
+                    <span class="text-muted">/ @Model.Unit</span>
+                </div>
+
+                <div class="d-flex align-items-center mb-4">
+                    <span class="me-3">Availability:</span>
+                    @if (Model.Stock > 0)
+                    {
+                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>In Stock (@Model.Stock available)</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Out of Stock</span>
+                    }
+                </div>
+
+                @if (Model.Stock > 0)
+                {
+                    <div class="row g-3 mb-4">
+                        <div class="col-auto">
+                            <div class="input-group" style="width: 130px;">
+                                <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(-1)"><i class="bi bi-dash"></i></button>
+                                <input type="number" id="quantity" class="form-control text-center" value="1" min="1" max="@Model.Stock">
+                                <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity(1)"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <button class="btn btn-success btn-lg w-100 add-to-cart" data-product-id="@Model.Id">
+                                <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                <div class="d-flex gap-3">
+                    <button class="btn btn-outline-success"><i class="bi bi-heart me-2"></i>Add to Wishlist</button>
+                    <button class="btn btn-outline-secondary"><i class="bi bi-share me-2"></i>Share</button>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="row text-center">
+                    <div class="col-4">
+                        <i class="bi bi-truck fs-3 text-success"></i>
+                        <p class="small mb-0 mt-1">Free Delivery</p>
+                    </div>
+                    <div class="col-4">
+                        <i class="bi bi-shield-check fs-3 text-success"></i>
+                        <p class="small mb-0 mt-1">Quality Guaranteed</p>
+                    </div>
+                    <div class="col-4">
+                        <i class="bi bi-arrow-counterclockwise fs-3 text-success"></i>
+                        <p class="small mb-0 mt-1">Easy Returns</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    @if (relatedProducts != null && relatedProducts.Any())
+    {
+        <hr class="my-5">
+        <h3 class="fw-bold mb-4">Related Products</h3>
+        <div class="row g-4">
+            @foreach (var product in relatedProducts)
+            {
+                <div class="col-6 col-md-3">
+                    <div class="card product-card h-100 border-0 shadow-sm">
+                        <a asp-action="Details" asp-route-id="@product.Id">
+                            <img src="@(product.ImageUrl ?? "/images/products/placeholder.jpg")" class="card-img-top" alt="@product.Name" style="height: 150px; object-fit: cover;">
+                        </a>
+                        <div class="card-body">
+                            <h6 class="card-title fw-semibold">@product.Name</h6>
+                            <p class="text-success fw-bold mb-0">₹@product.Price.ToString("F2")</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+}

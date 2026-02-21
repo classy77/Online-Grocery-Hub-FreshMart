@@ -1,0 +1,71 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Add Delivery Staff";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="bi bi-person-plus me-2"></i>Add Delivery Staff Member</h2>
+    <a asp-action="DeliveryStaff" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back to List
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 offset-lg-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form asp-action="CreateDeliveryStaff" method="post">
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label">Full Name *</label>
+                        <input asp-for="FullName" class="form-control" placeholder="e.g., John Doe" required>
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email Address *</label>
+                        <input asp-for="Email" type="email" class="form-control" placeholder="e.g., staff@example.com" required>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Phone" class="form-label">Phone Number</label>
+                        <input asp-for="Phone" type="tel" class="form-control" placeholder="e.g., 9876543210">
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">Password *</label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Enter a strong password" required>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                        <small class="text-muted d-block mt-1">
+                            <i class="bi bi-info-circle me-1"></i>Password should be at least 6 characters
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label">Confirm Password *</label>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm password" required>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success flex-grow-1">
+                            <i class="bi bi-check-circle me-2"></i>Add Delivery Staff
+                        </button>
+                        <a asp-action="DeliveryStaff" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="alert alert-info mt-4">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Note:</strong> The staff member can use the registered email and password to login to the delivery app/system.
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

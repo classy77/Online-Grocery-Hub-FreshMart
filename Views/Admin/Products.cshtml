@@ -1,0 +1,99 @@
+@model List<ProductViewModel>
+@{
+    ViewData["Title"] = "Products";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="bi bi-box-seam me-2"></i>Products</h2>
+    <a asp-action="CreateProduct" class="btn btn-success">
+        <i class="bi bi-plus-circle me-2"></i>Add Product
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var product in Model)
+                    {
+                        <tr>
+                            <td>
+                                <img src="@(product.ImageUrl ?? "/images/products/placeholder.jpg")" alt="@product.Name" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                            </td>
+                            <td>
+                                <span class="fw-semibold">@product.Name</span>
+                                <br><small class="text-muted">@product.Unit</small>
+                            </td>
+                            <td>@product.CategoryName</td>
+                            <td>₹@product.Price.ToString("F2")</td>
+                            <td>
+                                @if (product.Stock < 10)
+                                {
+                                    <span class="badge bg-danger">@product.Stock</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">@product.Stock</span>
+                                }
+                            </td>
+                            <td>
+                                @if (product.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="EditProduct" asp-route-id="@product.Id" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal_@product.Id">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Delete Modal -->
+                        <div class="modal fade" id="deleteModal_@product.Id" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Delete Product</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Are you sure you want to delete <strong>@product.Name</strong>?</p>
+                                        <p class="text-muted">This action cannot be undone.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <form asp-action="DeleteProduct" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@product.Id" />
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
