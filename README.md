@@ -195,4 +195,4 @@ This project is for educational purposes.
 
 ## Support
 
-For any issues or questions, please contact support@freshmart.com
+For any issues or questions, please contact classy.span@gmail.com
