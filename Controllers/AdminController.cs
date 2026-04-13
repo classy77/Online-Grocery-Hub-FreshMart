@@ -244,6 +244,8 @@ namespace GroceryStore.Controllers
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
                 .Include(o => o.Payment)
+                .Include(o => o.Delivery)
+                .ThenInclude(d => d.DeliveryStaff)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             if (order == null)
@@ -278,8 +280,10 @@ namespace GroceryStore.Controllers
                 }
             };
 
+            ViewBag.Delivery = order.Delivery;
             ViewBag.DeliveryStaff = await _context.Users
-                .Where(u => !u.IsAdmin && u.IsActive)
+                .Where(u => u.IsDeliveryStaff && u.IsActive)
+                .OrderBy(u => u.FullName)
                 .ToListAsync();
 
             ViewBag.AvailableStatuses = Enum.GetNames(typeof(OrderStatus));
@@ -345,21 +349,67 @@ namespace GroceryStore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignDeliveryStaff(int orderId, int deliveryStaffId)
         {
-            var order = await _context.Orders.FindAsync(orderId);
-            if (order == null)
-                return NotFound();
+            try
+            {
+                if (orderId <= 0)
+                {
+                    TempData["Error"] = "Invalid order ID";
+                    return RedirectToAction(nameof(Orders));
+                }
 
-            var delivery = await _context.Deliveries.FirstOrDefaultAsync(d => d.OrderId == orderId);
-            if (delivery == null)
-                return NotFound();
+                if (deliveryStaffId <= 0)
+                {
+                    TempData["Error"] = "Please select a delivery staff member";
+                    return RedirectToAction(nameof(OrderDetails), new { id = orderId });
+                }
 
-            delivery.DeliveryStaffId = deliveryStaffId;
-            delivery.Status = DeliveryStatus.Assigned.ToString();
+                var order = await _context.Orders.FindAsync(orderId);
+                if (order == null)
+                {
+                    TempData["Error"] = "Order not found";
+                    return RedirectToAction(nameof(Orders));
+                }
 
-            await _context.SaveChangesAsync();
+                var delivery = await _context.Deliveries.FirstOrDefaultAsync(d => d.OrderId == orderId);
+                if (delivery == null)
+                {
+                    TempData["Error"] = "Delivery record not found. Please try again.";
+                    return RedirectToAction(nameof(OrderDetails), new { id = orderId });
+                }
 
-            TempData["Success"] = "Delivery staff assigned successfully";
-            return RedirectToAction(nameof(OrderDetails), new { id = orderId });
+                var staff = await _context.Users.FindAsync(deliveryStaffId);
+                if (staff == null || staff.IsAdmin)
+                {
+                    TempData["Error"] = "Invalid delivery staff member";
+                    return RedirectToAction(nameof(OrderDetails), new { id = orderId });
+                }
+
+                delivery.DeliveryStaffId = deliveryStaffId;
+                delivery.Status = DeliveryStatus.Assigned.ToString();
+                delivery.ScheduledAt = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+
+                // Create notification for customer
+                var notification = new Notification
+                {
+                    UserId = order.UserId,
+                    Type = "InApp",
+                    Title = "Delivery Assigned",
+                    Message = $"Your order #{order.OrderNumber} has been assigned to {staff.FullName} for delivery.",
+                    TargetUrl = $"/Order/Details/{order.Id}"
+                };
+                _context.Notifications.Add(notification);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"Delivery assigned to {staff.FullName} successfully";
+                return RedirectToAction(nameof(OrderDetails), new { id = orderId });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "An error occurred while assigning delivery staff. Please try again.";
+                return RedirectToAction(nameof(OrderDetails), new { id = orderId });
+            }
         }
 
         // Categories Management
@@ -421,7 +471,7 @@ namespace GroceryStore.Controllers
         public async Task<IActionResult> DeliveryStaff()
         {
             var staff = await _context.Users
-                .Where(u => !u.IsAdmin)
+                .Where(u => u.IsDeliveryStaff)
                 .OrderBy(u => u.FullName)
                 .ToListAsync();
 
@@ -453,13 +503,15 @@ namespace GroceryStore.Controllers
                 Phone = model.Phone,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
                 IsAdmin = false,
+                IsDeliveryStaff = true,
                 IsActive = true,
                 CreatedAt = DateTime.Now
             };
 
             _context.Users.Add(user);
+            await _context.SaveChangesAsync();
 
-            // Create empty cart for user
+            // Create empty cart for user (after user is saved)
             var cart = new Cart { UserId = user.Id };
             _context.Carts.Add(cart);
 

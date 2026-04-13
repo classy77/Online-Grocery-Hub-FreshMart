@@ -132,6 +132,11 @@ namespace GroceryStore.Controllers
 
         public async Task<IActionResult> InventoryReport()
         {
+            // Get low stock count from database first
+            var lowStockCount = await _context.Products
+                .Where(p => p.IsActive && p.Stock < 10)
+                .CountAsync();
+
             var products = await _context.Products
                 .Include(p => p.Category)
                 .Where(p => p.IsActive)
@@ -147,13 +152,40 @@ namespace GroceryStore.Controllers
                 })
                 .ToListAsync();
 
-            var lowStockProducts = products.Where(p => p.Stock < 10).ToList();
             var totalStockValue = products.Sum(p => p.StockValue);
 
-            ViewBag.LowStockCount = lowStockProducts.Count;
+            ViewBag.LowStockCount = lowStockCount;
             ViewBag.TotalStockValue = totalStockValue;
 
             return View(products);
+        }
+
+        public async Task<IActionResult> ExportInventory()
+        {
+            var products = await _context.Products
+                .Include(p => p.Category)
+                .Where(p => p.IsActive)
+                .OrderBy(p => p.Stock)
+                .Select(p => new
+                {
+                    p.Name,
+                    CategoryName = p.Category != null ? p.Category.Name : "Uncategorized",
+                    p.Stock,
+                    p.PriceCents,
+                    StockValue = p.Stock * p.PriceCents / 100m
+                })
+                .ToListAsync();
+
+            var csv = "Product Name,Category,Stock,Unit Price (₹),Stock Value (₹)\n";
+            foreach (var product in products)
+            {
+                var unitPrice = (product.PriceCents / 100m).ToString("F2");
+                var stockValue = product.StockValue.ToString("F2");
+                csv += $"\"{product.Name}\",\"{product.CategoryName}\",{product.Stock},{unitPrice},{stockValue}\n";
+            }
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+            return File(bytes, "text/csv", $"inventory_report_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
         }
 
         public async Task<IActionResult> ExportSales(DateTime? startDate, DateTime? endDate)

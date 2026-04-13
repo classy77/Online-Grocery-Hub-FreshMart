@@ -36,10 +36,10 @@ namespace GroceryStore.Controllers
             }
 
             if (minPrice.HasValue)
-                query = query.Where(p => p.Price >= minPrice.Value);
+                query = query.Where(p => p.PriceCents >= minPrice.Value * 100);
 
             if (maxPrice.HasValue)
-                query = query.Where(p => p.Price <= maxPrice.Value);
+                query = query.Where(p => p.PriceCents <= maxPrice.Value * 100);
 
             // Apply sorting
             query = sort switch

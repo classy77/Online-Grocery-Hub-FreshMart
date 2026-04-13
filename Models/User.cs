@@ -26,6 +26,8 @@ namespace GroceryStore.Models
 
         public bool IsAdmin { get; set; } = false;
 
+        public bool IsDeliveryStaff { get; set; } = false;
+
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;

@@ -3,6 +3,7 @@
     ViewData["Title"] = $"Order #{Model.OrderNumber}";
     Layout = "_AdminLayout";
     var deliveryStaff = ViewBag.DeliveryStaff as List<User>;
+    var delivery = ViewBag.Delivery as Delivery;
     var availableStatuses = ViewBag.AvailableStatuses as string[];
 }
 
@@ -97,23 +98,50 @@
                 <h5 class="mb-0 fw-bold">Assign Delivery Staff</h5>
             </div>
             <div class="card-body">
-                <form asp-action="AssignDeliveryStaff" method="post" class="row g-3">
-                    <input type="hidden" name="orderId" value="@Model.OrderId" />
-                    <div class="col-md-6">
-                        <select name="deliveryStaffId" class="form-select">
-                            <option value="">Select Delivery Staff</option>
-                            @foreach (var staff in deliveryStaff ?? new List<User>())
-                            {
-                                <option value="@staff.Id">@staff.FullName (@staff.Email)</option>
+                @if (deliveryStaff?.Count > 0)
+                {
+                    <form asp-action="AssignDeliveryStaff" method="post" class="row g-3" id="assignDeliveryForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="orderId" value="@Model.OrderId" />
+                        <div class="col-md-6">
+                            <select name="deliveryStaffId" class="form-select" required id="deliveryStaffSelect">
+                                <option value="">-- Select Delivery Staff --</option>
+                                @foreach (var staff in deliveryStaff)
+                                {
+                                    <option value="@staff.Id">@staff.FullName (@staff.Email)</option>
+                                }
+                            </select>
+                            <small class="text-danger d-none" id="selectError">Please select a delivery staff member</small>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-person-check me-2"></i>Assign
+                            </button>
+                        </div>
+                    </form>
+                    <script>
+                        document.getElementById('assignDeliveryForm').addEventListener('submit', function(e) {
+                            const select = document.getElementById('deliveryStaffSelect');
+                            const error = document.getElementById('selectError');
+                            
+                            if (!select.value) {
+                                e.preventDefault();
+                                error.classList.remove('d-none');
+                                select.classList.add('is-invalid');
+                                return false;
                             }
-                        </select>
+                            
+                            error.classList.add('d-none');
+                            select.classList.remove('is-invalid');
+                        });
+                    </script>
+                }
+                else
+                {
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle me-2"></i>No delivery staff available. Please create delivery staff members first.
                     </div>
-                    <div class="col-md-6">
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-person-check me-2"></i>Assign
-                        </button>
-                    </div>
-                </form>
+                }
             </div>
         </div>
     </div>
@@ -139,6 +167,25 @@
             </div>
             <div class="card-body">
                 <p class="mb-0">@Model.ShippingAddress</p>
+            </div>
+        </div>
+
+        <!-- Delivery Info -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 fw-bold">Delivery Information</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><span class="text-muted">Status:</span> <span class="badge bg-info">@(delivery?.Status ?? "No delivery record")</span></p>
+                @if (delivery?.DeliveryStaff != null)
+                {
+                    <p class="mb-2"><span class="text-muted">Assigned Staff:</span> <span class="fw-semibold">@delivery.DeliveryStaff.FullName</span></p>
+                    <p class="mb-0"><span class="text-muted">Email:</span> <span class="text-break">@delivery.DeliveryStaff.Email</span></p>
+                }
+                else
+                {
+                    <p class="mb-0 text-warning"><i class="bi bi-exclamation-triangle me-2"></i>No delivery staff assigned yet</p>
+                }
             </div>
         </div>
 

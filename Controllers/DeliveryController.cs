@@ -18,6 +18,15 @@ namespace GroceryStore.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Authorization Check: Ensures user is delivery staff or admin
+        /// </summary>
+        private async Task<bool> IsAuthorizedDeliveryStaff(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            return user != null && (user.IsDeliveryStaff || user.IsAdmin);
+        }
+
         public async Task<IActionResult> Index()
         {
             var userId = GetCurrentUserId();
@@ -26,13 +35,10 @@ namespace GroceryStore.Controllers
             if (user == null)
                 return NotFound();
 
-            // Check if user is delivery staff (not admin but has deliveries assigned)
-            var isDeliveryStaff = await _context.Deliveries
-                .AnyAsync(d => d.DeliveryStaffId == userId);
-
-            if (!isDeliveryStaff && !user.IsAdmin)
+            // Check if user is delivery staff or admin
+            if (!user.IsDeliveryStaff && !user.IsAdmin)
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             var deliveries = await _context.Deliveries
@@ -71,6 +77,11 @@ namespace GroceryStore.Controllers
         public async Task<IActionResult> OrderDetails(int id)
         {
             var userId = GetCurrentUserId();
+            
+            // Verify user is authorized delivery staff
+            if (!await IsAuthorizedDeliveryStaff(userId))
+                return RedirectToAction("AccessDenied", "Account");
+
             var delivery = await _context.Deliveries
                 .Include(d => d.Order)
                 .ThenInclude(o => o.User)
@@ -111,6 +122,11 @@ namespace GroceryStore.Controllers
         public async Task<IActionResult> UpdateStatus(int orderId, string status, string? notes)
         {
             var userId = GetCurrentUserId();
+            
+            // Verify user is authorized delivery staff
+            if (!await IsAuthorizedDeliveryStaff(userId))
+                return RedirectToAction("AccessDenied", "Account");
+
             var delivery = await _context.Deliveries
                 .Include(d => d.Order)
                 .FirstOrDefaultAsync(d => d.OrderId == orderId && d.DeliveryStaffId == userId);
