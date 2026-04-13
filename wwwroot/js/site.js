@@ -22,14 +22,69 @@ $(document).ready(function() {
     updateCartCount();
 
     // Search autocomplete
-    var searchInput = $('input[name="search"]');
+    var searchInput = $('#searchInput');
+    var searchSuggestions = $('#searchSuggestions');
+    var searchTimeout;
+
     if (searchInput.length > 0) {
         searchInput.on('input', function() {
-            var query = $(this).val();
+            clearTimeout(searchTimeout);
+            var query = $(this).val().trim();
+            
             if (query.length >= 2) {
-                $.get('/Product/Search', { query: query }, function(data) {
-                    // Could implement dropdown with suggestions here
-                });
+                searchTimeout = setTimeout(function() {
+                    $.get('/Product/Search', { query: query }, function(data) {
+                        if (data.length > 0) {
+                            var html = '<ul class="list-unstyled m-0 p-0">';
+                            
+                            $.each(data, function(index, product) {
+                                html += '<li style="padding: 10px 15px; border-bottom: 1px solid #eee; cursor: pointer;" class="search-suggestion" data-product-id="' + product.id + '" data-product-name="' + product.name + '">';
+                                html += '<div class="d-flex align-items-center gap-2">';
+                                
+                                if (product.imageUrl) {
+                                    html += '<img src="' + product.imageUrl + '" alt="' + product.name + '" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">';
+                                } else {
+                                    html += '<div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-image text-muted"></i></div>';
+                                }
+                                
+                                html += '<div style="flex: 1;">';
+                                html += '<div class="fw-500 text-dark">' + product.name + '</div>';
+                                html += '<small class="text-muted">₹' + product.price.toFixed(2) + '</small>';
+                                html += '</div>';
+                                html += '</li>';
+                            });
+                            
+                            html += '</ul>';
+                            searchSuggestions.html(html).show();
+                            
+                            // Handle suggestion click
+                            $('.search-suggestion').on('click', function() {
+                                var productName = $(this).data('product-name');
+                                searchInput.val(productName);
+                                searchSuggestions.hide();
+                                searchInput.closest('form').submit();
+                            });
+                        } else {
+                            searchSuggestions.html('<div style="padding: 15px; text-align: center; color: #999;">No products found</div>').show();
+                        }
+                    });
+                }, 300);
+            } else {
+                searchSuggestions.hide();
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.input-group').length) {
+                searchSuggestions.hide();
+            }
+        });
+
+        // Show suggestions on focus if input has value
+        searchInput.on('focus', function() {
+            if ($(this).val().length >= 2 && searchSuggestions.html()) {
+                searchSuggestions.show();
             }
         });
     }
